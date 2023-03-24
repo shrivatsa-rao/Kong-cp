@@ -6,35 +6,12 @@ networks:
     driver: bridge
 
 services:
-  keycloak:
-    networks:
-    - kong-edu-net
-    image: jboss/keycloak:16.1.1
-    container_name: keycloak
-    hostname: keycloak
-    command: -Dkeycloak.profile.feature.upload_scripts=enabled
-    volumes:
-    - /srv/shared/misc:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "$KEYCLOAK_URI/auth/realms/master"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    restart: on-failure
-    ports:
-    - 8080:8080
-    environment:
-      DB_VENDOR: H2
-      KEYCLOAK_USER: admin
-      KEYCLOAK_PASSWORD: admin
-      KEYCLOAK_IMPORT: "/data/kong_realm_template.json"
-      PROXY_ADDRESS_FORWARDING: "true"
 
   postgres:
     networks:
     - kong-edu-net
     image: postgres:13.1
-    container_name: postgres
+    container_name: postgress
     hostname: postgres
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "kong"]
@@ -53,7 +30,7 @@ services:
     networks:
     - kong-edu-net
     image: kong/kong-gateway:2.8-alpine
-    container_name: kong-migrations
+    container_name: kong-migrationss
     depends_on:
     - postgres        
     command: kong migrations bootstrap
@@ -71,7 +48,7 @@ services:
     networks:
     - kong-edu-net
     image: kong/kong-gateway:2.8-alpine
-    container_name: kong-migrations-up
+    container_name: kong-migrations-upp
     depends_on:
     - kong-migrations
     command: kong migrations up && kong-migrations finish
@@ -95,8 +72,8 @@ services:
     depends_on:
     - kong-migrations-up
     volumes:
-    - /srv/shared/logs:/srv/shared/logs
-    - /srv/shared/ssl-certs:/srv/shared/ssl
+    - ./logs:/srv/shared/logs
+    - ./ssl-certs:/srv/shared/ssl
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 30s
@@ -146,11 +123,10 @@ services:
      #KONG_LICENSE_DATA: ${KONG_LICENSE_DATA}
      #KONG_ENFORCE_RBAC: "on"
      #KONG_ADMIN_API_URI: "https://api.kong.lan:8444"
-      KONG_ADMIN_API_URI: ${KONG_ADMIN_API_URI}
+      KONG_ADMIN_API_URI: "http://127.0.0.1:8444"
       KONG_ADMIN_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_ADMIN_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
-     #KONG_ADMIN_GUI_URL: "https://manager.kong.lan:8445"
-      KONG_ADMIN_GUI_URL: ${KONG_MANAGER_URI}
+      KONG_ADMIN_GUI_URL: "http://127.0.0.1:8445"
       KONG_ADMIN_GUI_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_ADMIN_GUI_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
      #KONG_ADMIN_GUI_AUTH: "basic-auth"
@@ -158,15 +134,15 @@ services:
       KONG_PORTAL: "on"
       KONG_PORTAL_GUI_PROTOCOL: "https"
      #KONG_PORTAL_GUI_HOST: "portal.kong.lan:8446"
-      KONG_PORTAL_GUI_HOST: ${KONG_PORTAL_GUI_HOST}
+      KONG_PORTAL_GUI_HOST: "http://127.0.0.1:8446"
       KONG_PORTAL_GUI_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_PORTAL_GUI_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
      #KONG_PORTAL_API_URL: "https://portal-api.kong.lan:8447"
-      KONG_PORTAL_API_URL: ${KONG_PORTAL_API_URI}
+      KONG_PORTAL_API_URL: "http://127.0.0.1:8447"
       KONG_PORTAL_API_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_PORTAL_API_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
-      KONG_PORTAL_AUTH: "basic-auth"
-      KONG_PORTAL_SESSION_CONF: "{\"cookie_name\":\"portal-session\",\"secret\":\"this_is_my_secret\",\"storage\":\"kong\",\"cookie_secure\":true, \"cookie_domain\":\".labs.konghq.com\", \"cookie_samesite\":\"off\"}"
+      #KONG_PORTAL_AUTH: "basic-auth"
+      #KONG_PORTAL_SESSION_CONF: "{\"cookie_name\":\"portal-session\",\"secret\":\"this_is_my_secret\",\"storage\":\"kong\",\"cookie_secure\":true, \"cookie_domain\":\".labs.konghq.com\", \"cookie_samesite\":\"off\"}"
       KONG_PORTAL_EMAIL_VERIFICATION: "off"
       KONG_PORTAL_EMAILS_FROM: "kongtest@gmail.com"
       KONG_PORTAL_EMAILS_REPLY_TO: "kongtest@gmail.com"
@@ -180,57 +156,7 @@ services:
       KONG_NGINX_WORKER_PROCESSES: 1
       KONG_LUA_SSL_TRUSTED_CERTIFICATE: "system"
  
-  kong-dp:
-    networks:
-    - kong-edu-net
-    image: kong/kong-gateway:2.8-alpine
-    container_name: kong-dp
-    hostname: kong-dp
-    depends_on:
-    - kong-cp
-    volumes:
-    - /srv/shared/ssl-certs:/srv/shared/ssl
-    - /srv/shared/logs:/srv/shared/logs
-    healthcheck:
-      test: ["CMD", "kong", "health"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    restart: on-failure
-    ports:
-    - "8000:8000/tcp"
-    - "8443:8443/tcp"
-    - "8101:8101/tcp"
-    environment:
-      KONG_ROLE: "data_plane"
-      KONG_CLUSTER_CERT: "/srv/shared/ssl/hybrid/cluster.crt"
-      KONG_CLUSTER_CERT_KEY: "/srv/shared/ssl/hybrid/cluster.key"
-      KONG_LUA_SSL_TRUSTED_CERTIFICATE: "/srv/shared/ssl/hybrid/cluster.crt,system"
-      KONG_CLUSTER_CONTROL_PLANE: "kong-cp:8005"
-      KONG_CLUSTER_TELEMETRY_ENDPOINT: "kong-cp:8006"
-      KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 http2 ssl"
-      KONG_STREAM_LISTEN: "0.0.0.0:5555, 0.0.0.0:5556 ssl reuseport backlog=65536"
-      KONG_STATUS_LISTEN: "0.0.0.0:8101"
-      KONG_PROXY_ACCESS_LOG: /srv/shared/logs/proxy_access.log
-      KONG_PROXY_ERROR_LOG: /srv/shared/logs/proxy_error.log
-      KONG_PROXY_STREAM_ACCESS_LOG: /srv/shared/logs/proxystream_access.log basic
-      KONG_PROXY_STREAM_ERROR_LOG: /srv/shared/logs/proxystream_error.log
-      KONG_DATABASE: "off"
-     #KONG_LICENSE_DATA: ${KONG_LICENSE_DATA}
-      KONG_ANONYMOUS_REPORTS: "off"
-      KONG_VITALS: "on"
-      KONG_VITALS_STRATEGY: prometheus
-      KONG_VITALS_STATSD_ADDRESS: statsd:9125
-      KONG_VITALS_TSDB_ADDRESS: prometheus:9090
-      KONG_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
-      KONG_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
-      KONG_NGINX_WORKER_PROCESSES: 1
-      KONG_TRACING: "on"
-      KONG_TRACING_WRITING_STRATEGY: "file"
-      KONG_TRACING_TYPES: "all"
-      KONG_TRACING_TIME_THRESHOLD: 0
-      KONG_TRACING_WRITE_ENDPOINT: /srv/shared/logs/granular_tracing.log
-      KONG_TRACING_DEBUG_HEADER: X-Trace
+ 
   
   smtp-server:
     networks:
@@ -292,7 +218,7 @@ services:
     ports:
     - 9090:9090
     volumes:
-    - /srv/shared/misc/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    - ./misc/prometheus.yaml:/etc/prometheus/prometheus.yaml
 
   statsd:
     networks:
@@ -312,7 +238,7 @@ services:
     - 9125:9125
     - 9102:9102
     volumes:
-    - /srv/shared/misc/statsd.rules.yaml:/tmp/statsd.rules.yaml
+    - ./misc/statsd.rules.yaml:/tmp/statsd.rules.yaml
 
   grafana:
     networks:

@@ -1,0 +1,4 @@
+172.20.0.1 - - [24/Mar/2023:05:59:27 +0000] "OPTIONS /workspaces?size=1000 HTTP/1.1" 400 622 "http://localhost:8002/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+172.20.0.1 - - [24/Mar/2023:05:59:28 +0000] "OPTIONS /default/kong HTTP/1.1" 400 622 "http://localhost:8002/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+172.20.0.1 - - [24/Mar/2023:05:59:45 +0000] "GET / HTTP/1.1" 200 19252 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+172.20.0.1 - - [24/Mar/2023:05:59:45 +0000] "GET /favicon.ico HTTP/1.1" 404 23 "http://localhost:8001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
