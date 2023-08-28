@@ -29,7 +29,7 @@ services:
   kong-migrations:
     networks:
     - kong-edu-net
-    image: kong/kong-gateway:2.8-alpine
+    image: kong/kong-gateway:3.0.0.0
     container_name: kong-migrationss
     depends_on:
     - postgres        
@@ -47,7 +47,7 @@ services:
   kong-migrations-up:
     networks:
     - kong-edu-net
-    image: kong/kong-gateway:2.8-alpine
+    image: kong/kong-gateway:3.0.0.0
     container_name: kong-migrations-upp
     depends_on:
     - kong-migrations
@@ -65,15 +65,15 @@ services:
   kong-cp:
     networks:
     - kong-edu-net
-    image: kong/kong-gateway:2.8-alpine
+    image: kong/kong-gateway:3.0.0.0
     container_name: kong-cp
     hostname: kong-cp
     user: kong
     depends_on:
     - kong-migrations-up
     volumes:
-    - ./logs:/srv/shared/logs
-    - ./ssl-certs:/srv/shared/ssl
+    - ../logs:/srv/shared/logs
+    - ../ssl-certs:/srv/shared/ssl
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 30s
@@ -100,19 +100,19 @@ services:
       KONG_PG_HOST: postgres
       KONG_PG_DATABASE: kong
       KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kong
+      KONG_PG_PASSWORD: kong          
       KONG_PG_MAX_CONCURRENT_QUERIES: 5
-      KONG_ADMIN_ACCESS_LOG: /srv/shared/logs/admin_access.log
-      KONG_ADMIN_ERROR_LOG: /srv/shared/logs/admin_error.log
-      KONG_ADMIN_GUI_ACCESS_LOG: /srv/shared/logs/admingui_access.log
-      KONG_ADMIN_GUI_ERROR_LOG: /srv/shared/logs/admingui_error.log
-      KONG_PORTAL_API_ACCESS_LOG: /srv/shared/logs/portalapi_access.log
-      KONG_PORTAL_API_ERROR_LOG: /srv/shared/logs/portalapi_error.log
-      KONG_PORTAL_GUI_ACCESS_LOG: /srv/shared/logs/portalgui_access.log
-      KONG_PORTAL_GUI_ERROR_LOG: /srv/shared/logs/portalgui_error.log
-      KONG_STATUS_ACCESS_LOG: /srv/shared/logs/status_access.log
-      KONG_STATUS_ERROR_LOG: /srv/shared/logs/status_error.log
-      KONG_AUDIT_LOG: "on"
+      #KONG_ADMIN_ACCESS_LOG: /srv/shared/logs/admin_access.log
+      #KONG_ADMIN_ERROR_LOG: /srv/shared/logs/admin_error.log
+      #KONG_ADMIN_GUI_ACCESS_LOG: /srv/shared/logs/admingui_access.log
+      #KONG_ADMIN_GUI_ERROR_LOG: /srv/shared/logs/admingui_error.log
+      #KONG_PORTAL_API_ACCESS_LOG: /srv/shared/logs/portalapi_access.log
+      #KONG_PORTAL_API_ERROR_LOG: /srv/shared/logs/portalapi_error.log
+      #KONG_PORTAL_GUI_ACCESS_LOG: /srv/shared/logs/portalgui_access.log
+      #KONG_PORTAL_GUI_ERROR_LOG: /srv/shared/logs/portalgui_error.log
+      #KONG_STATUS_ACCESS_LOG: /srv/shared/logs/status_access.log
+      #KONG_STATUS_ERROR_LOG: /srv/shared/logs/status_error.log
+      #KONG_AUDIT_LOG: "on"
       KONG_STATUS_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_STATUS_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
       KONG_ANONYMOUS_REPORTS: "off"
@@ -120,7 +120,7 @@ services:
       KONG_VITALS_STRATEGY: prometheus
       KONG_VITALS_STATSD_ADDRESS: statsd:9125
       KONG_VITALS_TSDB_ADDRESS: prometheus:9090
-     #KONG_LICENSE_DATA: ${KONG_LICENSE_DATA}
+      #KONG_LICENSE_DATA: ${KONG_LICENSE_DATA}
      #KONG_ENFORCE_RBAC: "on"
      #KONG_ADMIN_API_URI: "https://api.kong.lan:8444"
       KONG_ADMIN_API_URI: "http://127.0.0.1:8444"
@@ -130,7 +130,7 @@ services:
       KONG_ADMIN_GUI_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_ADMIN_GUI_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
      #KONG_ADMIN_GUI_AUTH: "basic-auth"
-     #KONG_ADMIN_GUI_SESSION_CONF: "{ \"cookie_name\": \"manager-session\", \"secret\": \"this_is_my_other_secret\", \"storage\": \"kong\", \"cookie_secure\":true, \"cookie_lifetime\":36000}"
+     #KONG_ADMIN_GUI_SESSION_CONF: "{ \"cookie_name\": \"manager-session\", \"secret\": \"this_is_my_other_secret\", \"storage\": \"kong\", \"cookie_secure\":true, \"cooki>
       KONG_PORTAL: "on"
       KONG_PORTAL_GUI_PROTOCOL: "https"
      #KONG_PORTAL_GUI_HOST: "portal.kong.lan:8446"
@@ -142,7 +142,7 @@ services:
       KONG_PORTAL_API_SSL_CERT_KEY: "/srv/shared/ssl/wildcard.key"
       KONG_PORTAL_API_SSL_CERT: "/srv/shared/ssl/wildcard.pem"
       #KONG_PORTAL_AUTH: "basic-auth"
-      #KONG_PORTAL_SESSION_CONF: "{\"cookie_name\":\"portal-session\",\"secret\":\"this_is_my_secret\",\"storage\":\"kong\",\"cookie_secure\":true, \"cookie_domain\":\".labs.konghq.com\", \"cookie_samesite\":\"off\"}"
+      #KONG_PORTAL_SESSION_CONF: "{\"cookie_name\":\"portal-session\",\"secret\":\"this_is_my_secret\",\"storage\":\"kong\",\"cookie_secure\":true, \"cookie_domain\":\".la>
       KONG_PORTAL_EMAIL_VERIFICATION: "off"
       KONG_PORTAL_EMAILS_FROM: "kongtest@gmail.com"
       KONG_PORTAL_EMAILS_REPLY_TO: "kongtest@gmail.com"
@@ -155,9 +155,7 @@ services:
      #KONG_SMTP_DOMAIN: ${KONG_SMTP_DOMAIN}
       KONG_NGINX_WORKER_PROCESSES: 1
       KONG_LUA_SSL_TRUSTED_CERTIFICATE: "system"
- 
- 
-  
+      
   smtp-server:
     networks:
     - kong-edu-net
@@ -218,7 +216,7 @@ services:
     ports:
     - 9090:9090
     volumes:
-    - ./misc/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    - ../misc/prometheus.yaml:/etc/prometheus/prometheus.yaml
 
   statsd:
     networks:
@@ -238,7 +236,7 @@ services:
     - 9125:9125
     - 9102:9102
     volumes:
-    - ./misc/statsd.rules.yaml:/tmp/statsd.rules.yaml
+    - ../misc/statsd.rules.yaml:/tmp/statsd.rules.yaml
 
   grafana:
     networks:
